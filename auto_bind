@@ -303,7 +303,7 @@ threading.Thread(target=wait_reload_named, daemon=True).start()
 
 while True:
     try:
-        # /dns/pro/ops.xxx.com/10.0.0.1
+        # /dns/pro/ops.xxx.xxx.01.pro/10.0.0.1
         event = client.watch("/dns/", recursive=True, timeout=1800)
         logging.info("get event {}, put it to queue".format(event.key))
         q.put(event)
