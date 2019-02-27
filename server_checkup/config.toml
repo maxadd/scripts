@@ -1,0 +1,33 @@
+excludeIPsFile = "/etc/server_checkup_exclude"
+dingdingUrl = "https://oapi.dingtalk.com/robot/send?access_token=89218661952e846c2810587e924c26ee3e29829e9663ce6fb9346c700fdaa0dz"
+csvFilePath = "/tmp"
+[inputs]
+  [inputs.zabbix]
+    server = "zabbix.example.com"
+    user = "admin"
+    password = ""
+    template_name = ""
+[passwords]
+  [passwords.root]
+    password = "/root/.ssh/id_rsa"
+    type = "key"
+  [passwords.user1]
+    password = ""
+    type = "password"
+[[plugins]]
+  kind = "ulimit"
+  user = "user1"
+  cmd = "ulimit -n"
+[[plugins]]
+  kind = "ntp"
+  user = "user1"
+  cmd = "/usr/sbin/ntpdate -q ntp1.example.com"
+  excludeIPs = ["10.2.2.1"]
+[[plugins]]
+  kind = "dns"
+  user = "user1"
+  cmd = "cat /etc/resolv.conf"
+[[plugins]]
+  kind = "zabbix_agent"
+  user = "user1"
+  cmd = "ps -ef|grep '/usr/sbin/zabbix_agentd'|grep -v grep|wc -l"

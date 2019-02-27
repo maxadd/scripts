@@ -12,7 +12,7 @@ import threading
 import subprocess
 from git import Repo
 
-instances = (("10.0.0.1", 2379), ("10.0.0.11", 2379), ("10.0.0.111", 2379))
+instances = (("10.0.0.1", 2379), ("10.0.0.2", 2379), ("10.0.0.3", 2379))
 default_zone = "pro"
 log_file = "/var/log/autobind.log"
 bind_conf = "/etc/named.conf"
@@ -39,10 +39,10 @@ forward_zone_head = """$TTL 86400
 @ IN NS ns2.{zone}.
 @ IN NS ns3.{zone}.
 @ IN NS ns4.{zone}.
-ns1 IN A 10.205.56.101
-ns2 IN A 10.205.56.102
-ns3 IN A 10.205.56.103
-ns4 IN A 10.205.56.104
+ns1 IN A 10.0.0.1
+ns2 IN A 10.0.0.2
+ns3 IN A 10.0.0.3
+ns4 IN A 10.0.0.4
 """
 
 reverse_zone_head = """$TTL 86400
@@ -303,7 +303,7 @@ threading.Thread(target=wait_reload_named, daemon=True).start()
 
 while True:
     try:
-        # /dns/pro/ops.xxx.xxx.01.pro/10.0.0.1
+        # /dns/prod/ops.xxx.xxx.01.prod/10.0.0.1
         event = client.watch("/dns/", recursive=True, timeout=1800)
         logging.info("get event {}, put it to queue".format(event.key))
         q.put(event)
