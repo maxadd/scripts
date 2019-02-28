@@ -18,7 +18,7 @@ var failedMsgCount map[string]int
 var allCheckupFailedIP map[string]struct{}
 
 const timeFormat = "20060102-1504"
-const fileReceiveIP = "10.2.1.1"
+const fileReceiveIP = "10.205.56.119"
 const fileReceiveDir = "xxx"
 const fileReceivePath = "/usr/share/nginx/html/" + fileReceiveDir
 const markdownMsgHead = `总共要巡检的机器 %d 台，其中 %d 台连接失败。
@@ -167,6 +167,13 @@ func failedMsgProcess(msg *plugins.FailedMsg, size int) []string {
 	for _, v := range msg.Msg {
 		s[m[v.Kind]] = v.Content
 		failedMsgCount[v.Kind]++
+	}
+
+	if len(s[m[plugins.ConnectionKind]]) > 0 {
+		for i := 2; i < len(s); i++ {
+			s[i] = "no"
+		}
+		return s
 	}
 
 	for i, v := range s {
