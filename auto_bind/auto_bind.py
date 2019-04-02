@@ -57,10 +57,10 @@ reverse_zone_head = """$TTL 86400
 @ IN NS ns2.{zone}.
 @ IN NS ns3.{zone}.
 @ IN NS ns4.{zone}.
-101 IN PTR ns1.{zone}.
-102 IN PTR ns2.{zone}.
-103 IN PTR ns3.{zone}.
-104 IN PTR ns4.{zone}.
+1 IN PTR ns1.{zone}.
+2 IN PTR ns2.{zone}.
+3 IN PTR ns3.{zone}.
+4 IN PTR ns4.{zone}.
 """
 
 client = etcd.Client(instances, allow_reconnect=True)
@@ -111,7 +111,7 @@ class Record:
                 flag = True
 
         if len(tmp) != 4 or flag:
-            logging.error("unexpected ip:", ip)
+            logging.error(f'unexpected ip:, {ip}')
             raise Return
 
     @staticmethod
@@ -121,6 +121,8 @@ class Record:
             for i in f:
                 if re.match(prefix + r'\s', i):
                     if patten.split(i.rstrip())[-1] == element:
+                        logging.warning(f'the record {prefix} already exists in file {file}, '
+                                        f'{i.strip()} -> {content}')
                         break
                 offset += len(i)
             else:
@@ -132,13 +134,13 @@ class Record:
             f.seek(offset)
             f.truncate(offset)
             f.write(lave_content)
-            f.write(content)
+            f.write(content + '\n')
 
     def forward_zone_update(self, forward_zone_file, forward_conf_file):
         self.append_conf_file(forward_conf_file, self.domain)
         # hostname = self.hostname.rstrip("." + self.domain)
         hostname = self.hostname[:-len("." + self.domain)]
-        content = "{} IN A {}\n".format(hostname, self.ip)
+        content = f'{hostname} IN A {self.ip}'
         try:
             self.update_file(forward_zone_file, hostname, content, self.ip)
         except FileNotFoundError:
@@ -149,7 +151,7 @@ class Record:
     def reverse_zone_update(self, reverse_zone_file, reverse_conf_file, network):
         self.append_conf_file(reverse_conf_file, network)
         ip = self.ip.split(".")[-1]
-        content = "{} IN PTR {}\n".format(ip, self.hostname)
+        content = f'{ip} IN PTR {self.hostname}'
         try:
             self.update_file(reverse_zone_file, ip, content, self.hostname)
         except FileNotFoundError:
@@ -220,7 +222,7 @@ class Record:
                         break
                 offset += len(i)
             else:
-                logging.error("when deleting, {} does not exist in the {} file".format(prefix, file))
+                logging.error(f'when deleting, {prefix} does not exist in the {file} file')
                 raise Return
             lave_content = ""
             for i in f:
@@ -228,10 +230,11 @@ class Record:
             f.seek(offset)
             f.truncate(offset)
             f.write(lave_content)
+            logging.warning(f'delete record {prefix} success!')
 
     def delete(self):
         forward_zone_file = os.path.join(zone_dir, self.domain + ".zone")
-        hostname_prefix = self.hostname.rstrip("." + self.domain)
+        hostname_prefix = self.hostname[:len(self.hostname) - len("." + self.domain)]
         self.delete_record(forward_zone_file, hostname_prefix, self.ip)
         ip_split = self.ip.split(".")
         reverse_zone_file = os.path.join(zone_dir, '.'.join(ip_split[:3]) + ".zone")
@@ -279,7 +282,7 @@ def get_event_obj():
     while True:
         logging.info("waiting event is triggered")
         event = q.get()
-        logging.info("get event {} from queue".format(event.key))
+        logging.info(f'get event {event.key} from queue')
         try:
             obj = Record(event)
             # print(event.action)
@@ -303,9 +306,9 @@ threading.Thread(target=wait_reload_named, daemon=True).start()
 
 while True:
     try:
-        # /dns/prod/ops.xxx.xxx.01.prod/10.0.0.1
+        # /dns/idc01/ops.xxx.com/10.0.0.1
         event = client.watch("/dns/", recursive=True, timeout=1800)
-        logging.info("get event {}, put it to queue".format(event.key))
+        # logging.info("get event {}, put it to queue".format(event.key))
         q.put(event)
         reload_named_q.put(1)
     except etcd.EtcdWatchTimedOut:
