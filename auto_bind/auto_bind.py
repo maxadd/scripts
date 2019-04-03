@@ -126,7 +126,7 @@ class Record:
                         break
                 offset += len(i)
             else:
-                f.write(content)
+                f.write(content + '\n')
                 return
             lave_content = ""
             for i in f:
@@ -145,7 +145,7 @@ class Record:
             self.update_file(forward_zone_file, hostname, content, self.ip)
         except FileNotFoundError:
             f = self.create_forward_zone_file(forward_zone_file)
-            f.write(content)
+            f.write(content + "\n")
             f.close()
 
     def reverse_zone_update(self, reverse_zone_file, reverse_conf_file, network):
@@ -156,7 +156,7 @@ class Record:
             self.update_file(reverse_zone_file, ip, content, self.hostname)
         except FileNotFoundError:
             f = self.create_reverse_zone_file(reverse_zone_file)
-            f.write(content)
+            f.write(content + "\n")
             f.close()
 
     def set(self):
@@ -292,8 +292,8 @@ def get_event_obj():
             # git_opt(obj.zones)
         except Return:
             pass
-        except git.exc.GitCommandError:
-            logging.exception("")
+        # except git.exc.GitCommandError:
+        #     logging.exception("")
         except (Exception, Exit) as e:
             print(e)
             logging.exception("")
