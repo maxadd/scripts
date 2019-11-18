@@ -151,7 +151,7 @@ class Record:
     def reverse_zone_update(self, reverse_zone_file, reverse_conf_file, network):
         self.append_conf_file(reverse_conf_file, network)
         ip = self.ip.split(".")[-1]
-        content = f'{ip} IN PTR {self.hostname}'
+        content = f'{ip} IN PTR {self.hostname}.'
         try:
             self.update_file(reverse_zone_file, ip, content, self.hostname)
         except FileNotFoundError:
